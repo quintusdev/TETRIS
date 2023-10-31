@@ -1,30 +1,27 @@
+//definisco le colonne della matrice (campo di gioco)
 const BOARD_WIDTH = 10;
+//definisco le righe della matriche (campo di gioco)
 const BOARD_HEIGHT = 20;
-
+//definisco la costante BOARD come un'array vuoto
 const board = [];
-/* const bgm = document.createElement("audio");
-const breakSound = document.createElement("audio");
-const drop = document.createElement("audio"); */
+
+//Dichiaro la variabile ROTATEDSHAPE
 let rotatedShape;
 
-/* bgm.setAttribute("src", ".assets/bgm.mp3");
-bgm.muted = true;
-
-breakSound.setAttribute("src", ".assets/break.mp3");
-breakSound.muted = true;
-
-drop.setAttribute("src", ".assets/drop.mp3");
-drop.muted = true; */
-
+// Questo ciclo esterno itera attraverso le righe della matrice. Il numero di iterazioni dipende dalla variabile BOARD_HEIGHT
 for(let row=0; row < BOARD_HEIGHT; row++){
+    //Per ogni iterazione del ciclo esterno, viene creata un array vuoto e assegnato all'array bidimensionale board all'indice row, cioè creo una riga vuota all'interno della matrice.
     board[row]=[];
+    //Questo ciclo interno itera attraverso le colonne all'interno della riga corrente. Il numero di iterazioni dipende dalla variabile BOARD_WIDTH
     for(let col=0; col < BOARD_WIDTH; col++){
+        /* Per ogni iterazione del ciclo interno, l'elemento all'incrocio della riga row e della colonna col viene impostato a 0. Quindi, stai inizializzando tutti gli elementi della matrice con il valore 0. */
         board[row][col] = 0;
     }
 };
 
 const tetrominoes = [
     {
+
         shape: [
             [1,1],
             [1,1]
@@ -74,36 +71,64 @@ const tetrominoes = [
     },
 ];
 
+/* Questa funzione, chiamata randomTetromino, ha lo scopo di generare un tetromino casuale tra una lista predefinita di tetromini, assegnandogli una forma, un colore e posizionandolo inizialmente nella parte superiore della griglia di gioco (alla riga 0) in una colonna casuale. */
 function randomTetromino() {
+    /*  Questa riga genera un numero casuale tra 0 (incluso) e la lunghezza della lista tetrominoes (escluso). In questo modo, viene selezionato casualmente un tetromino dalla lista. */
     const index = Math.floor(Math.random()* tetrominoes.length);
+
+    /*  Una volta scelto casualmente un tetromino, viene assegnato a una variabile chiamata tetromino. Questo oggetto contiene la forma del tetromino e il suo colore, come definiti nella lista tetrominoes. */
     const tetromino = tetrominoes[index];
 
+    /* La funzione restituisce un oggetto con le seguenti proprietà: */
     return {
+        //La forma del tetromino selezionato dalla lista 
         shape: tetromino.shape,
+        //Il colore del tetromino selezionato dalla lista.
         color: tetromino.color,
+        // La riga iniziale del tetromino viene impostata a 0, il che significa che il tetromino inizierà nella parte superiore della griglia di gioco
         row: 0,
-        col: Math.floor(Math.random()* (BOARD_WIDTH - tetromino.shape[0].length +1))
+        //La colonna iniziale del tetromino viene impostata in modo casuale, ma assicurandosi che il tetromino non esca dalla griglia.
+        col: Math.floor(Math.random() * (BOARD_WIDTH - tetromino.shape[0].length +1))
+        //La formula (BOARD_WIDTH - tetromino.shape[0].length + 1)calcola il massimo spazio disponibile nella griglia per il tetromino.
     }
 }
-
+/* Inizializza la variabile currentTetromino utilizzando la funzione randomTetromino(). Questo significa che currentTetromino ora contiene un tetromino casuale con una forma, un colore e una posizione iniziale. */
 let currentTetromino = randomTetromino();
+
+/* Inizializza la variabile currentGhostTetromino senza assegnarle un valore specifico. In altre parole, al momento è undefined e non contiene alcun tetromino. 
+Questa variabile è utilizzata per rappresentare un "fantasma" o una copia trasparente del tetromino corrente nella griglia di gioco, utilizzata per mostrare al giocatore dove il tetromino cadrebbe se venisse rilasciato nella posizione corrente senza attendere ulteriori movimenti.*/
 let currentGhostTetromino;
 
+/* Questa è una funzione chiamata drawTetromino che è responsabile per disegnare il tetromino corrente sulla griglia di gioco.  */
 function drawTetromino() {
+    /*  Questa riga estrae la forma del tetromino corrente dalla variabile currentTetromino e la assegna alla variabile shape. */
     const shape = currentTetromino.shape;
+    //Estrae il colore del tetromino corrente e lo assegna alla variabile color.
     const color = currentTetromino.color;
+    //Estrae la riga corrente in cui è posizionato il tetromino dalla variabile currentTetromino e la assegna alla variabile row.
     const row = currentTetromino.row;
+    //Estrae la colonna corrente in cui è posizionato il tetromino dalla variabile currentTetromino e la assegna alla variabile col.
     const col = currentTetromino.col;
 
+    /* Il doppio ciclo for nidificato successivo viene utilizzato per scorrere gli elementi della forma del tetromino. La variabile r rappresenta la riga all'interno della forma del tetromino, mentre la variabile c rappresenta la colonna all'interno di quella riga. */
     for(let r=0; r<shape.length; r++){
         for(let c=0; c<shape[r].length; c++){
+
+            /* Questo blocco if verifica se l'elemento nella posizione [r][c] della forma del tetromino è diverso da zero. Se è diverso da zero, significa che c'è un blocco del tetromino in quella posizione */
             if(shape[r][c]){
+                //Viene creato un nuovo elemento <div> HTML, che rappresenterà un blocco del tetromino
                 const block = document.createElement('div');
+                //Aggiunge la classe CSS "block" all'elemento <div>
                 block.classList.add('block');
+                //Imposta il colore di sfondo del blocco del tetromino con il colore estratto dalla variabile color.
                 block.style.backgroundColor= color;
+                /* Imposta la posizione verticale (top) del blocco calcolando la posizione in base alla riga del tetromino e moltiplicando per 24 */ 
                 block.style.top = (row+r) *24 + 'px';
+                /* Imposta la posizione orizzontale (left) del blocco calcolando la posizione in base alla colonna del tetromino e moltiplicando per 24 */
                 block.style.left = (col+c) *24 + 'px';
+                //Imposta un attributo "id" univoco per il blocco del tetromino. 
                 block.setAttribute('id', `block-${row+r}-${col+c}`);
+                //Aggiunge il blocco del tetromino come figlio all'elemento con l'ID "game_board
                 document.getElementById('game_board').appendChild(block);
             }
         }
